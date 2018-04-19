@@ -1,0 +1,115 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "AzureNetworkPrefix": "10.2.0.0/23",
+    "AzureNetworkSubnet1Name": "110-int-prd",
+    "AzureNetworkSubnet1Prefix": "10.2.1.0/26",
+    "AzureNetworkSubnet2Name": "120-ad-prd",
+    "AzureNetworkSubnet2Prefix": "10.2.1.128/26",
+    "AzureNetworkSubnet3Name": "130-mgmt-prd",
+    "AzureNetworkSubnet3Prefix": "10.2.1.64/26",
+    "AzureNetworkSubnet6Name": "GatewaySubnet",
+    "AzureNetworkSubnet6Prefix": "10.2.1.224/27",
+    "networkSecurityGroupName1": "[concat(variables('AzureNetworkSubnet1Name'), '-nsg')]",
+    "networkSecurityGroupName2": "[concat(variables('AzureNetworkSubnet2Name'), '-nsg')]",
+    "networkSecurityGroupName3": "[concat(variables('AzureNetworkSubnet3Name'), '-nsg')]"
+ 
+
+  },
+  "resources": [
+    {
+      "name": "vnet-prd",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+          "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName1'))]",
+          "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName2'))]",
+          "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName3'))]"
+      ],
+      "tags": {
+        "displayName": "vnet-prod"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('AzureNetworkPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('AzureNetworkSubnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('AzureNetworkSubnet1Prefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName1'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('AzureNetworkSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('AzureNetworkSubnet2Prefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName2'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('AzureNetworkSubnet3Name')]",
+            "properties": {
+              "addressPrefix": "[variables('AzureNetworkSubnet3Prefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName3'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('AzureNetworkSubnet6Name')]",
+            "properties": {
+              "addressPrefix": "[variables('AzureNetworkSubnet6Prefix')]"
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "[variables('networkSecurityGroupName1')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": []
+      }
+    },
+
+    {
+      "name": "[variables('networkSecurityGroupName2')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": []
+      }
+    },
+
+    {
+      "name": "[variables('networkSecurityGroupName3')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": []
+      }
+    }
+
+
+
+  ],
+  "outputs": {
+  }
+}
