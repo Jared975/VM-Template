@@ -3,19 +3,19 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "vmName": {
-            "value": "genericname"
+            "value": "Jared"
         },
         "existingVirtualNetworkName": {
-            "value": "prd-vnet"
+            "value": "JaredsVnet"
         },
         "subnetName": {
-            "value": "default-subnet"
+            "value": "Subnet-1"
         },
         "existingVirtualNetworkResourceGroup": {
-            "value": "rg-vnet"
+            "value": "template-rg"
         },       
         "vmSize": {
-            "value": "Basic_A1"
+            "value": "Standard_B1ms"
         }
     }
 }
