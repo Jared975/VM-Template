@@ -1,0 +1,160 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the VM"
+            }
+        },
+        "adminUserName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "WindowsOSVersion": {
+            "type": "string",
+            "defaultValue": "2016-Datacenter",
+            "allowedValues": [
+                "2008-R2-SP1",
+                "2012-Datacenter",
+                "2012-R2-Datacenter",
+                "2016-Datacenter"
+            ]
+        },
+        "vmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Size of the VM"
+            }
+        },
+        "existingVirtualNetworkName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the existing VNET"
+            }
+        },
+        "existingVirtualNetworkResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the existing VNET resource group"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet in the virtual network you want to use"
+            }
+        },
+        "newStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+            }
+        }
+    },
+    "variables": {
+        "vmName": "[parameters('vmName')]",
+        "publicIPAddressType": "Dynamic",
+        "publicIPAddressName": "[concat(variables('VMName'), '-publicIP')]",
+        "vmImagePublisher": "MicrosoftWindowsServer",
+        "vmImageOffer": "WindowsServer",
+        "vmvnetID": "[resourceId(parameters('existingVirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVirtualNetworkName'))]",
+        "vmsubnetRef": "[concat(variables('vmvnetID'),'/subnets/', parameters('subnetName'))]",
+        "vmNicName": "[concat(variables('vmName'), '-nic')]",
+    },
+    "resources": [
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPAddressName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
+            }
+        },
+        {
+            "name": "[variables('vmNicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
+            ],
+            "tags": {
+                "displayName": "vmNic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('VMSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2016-04-30-preview",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('vmNicName'))]"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "[variables('vmName')]",
+                    "adminUsername": "[parameters('adminUserName')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": "true"
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('VmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('vmImagePublisher')]",
+                        "offer": "[variables('vmImageOffer')]",
+                        "sku": "[parameters('WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(variables('vmName'), '-osDisk')]",
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        }
+                    },
+                    "dataDisks": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vmNicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('http://', parameters('newStorageAccountName'), '.blob.core.windows.net')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
