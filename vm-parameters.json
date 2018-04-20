@@ -5,6 +5,9 @@
         "vmName": {
             "value": "Jared"
         },
+        "adminUserName": {
+          "value": "Jared"  
+        },
         "existingVirtualNetworkName": {
             "value": "JaredsVnet"
         },
