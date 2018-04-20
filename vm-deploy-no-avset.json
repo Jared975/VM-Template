@@ -64,7 +64,7 @@
         "vmImageOffer": "WindowsServer",
         "vmvnetID": "[resourceId(parameters('existingVirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVirtualNetworkName'))]",
         "vmsubnetRef": "[concat(variables('vmvnetID'),'/subnets/', parameters('subnetName'))]",
-        "vmNicName": "[concat(variables('vmName'), '-nic')]",
+        "vmNicName": "[concat(variables('vmName'), '-nic')]"
     },
     "resources": [
         {
