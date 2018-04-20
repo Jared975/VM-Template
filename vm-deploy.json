@@ -55,16 +55,6 @@
                 "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
             }
         },
-        "AvSetRequired?": {
-            "type": "string",
-            "metadata": {
-                "description": "Does this VM need to be placed in an existing Availability Set?"
-            },
-            "allowedValues": [
-                "yes",
-                "no"
-            ]
-        },
         "avSetName": {
             "type": "string",
             "defaultValue": "",
@@ -96,7 +86,6 @@
             }
         },
         {
-            "condition": "[equals(parameters('AvSetRequired?'), 'Yes')]",
             "type": "Microsoft.Compute/availabilitySets",
             "apiVersion": "2017-03-30",
             "name": "[variables('availabilitySetName')]",
@@ -187,7 +176,7 @@
                     }
                 },
                 "availabilitySet": {
-                    "id": "[if(equals(parameters('AvSetRequired?'), 'yes'), variables('availabilitySetId'), json('null'))]"
+                    "id": "[variables('availabilitySetId')]"
                 }
             }
         }
